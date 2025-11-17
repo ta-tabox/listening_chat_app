@@ -1,0 +1,2 @@
+# listening_chat_app
+傾聴型AIチャットアプリケーション
