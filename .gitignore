@@ -137,3 +137,34 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Pipenv
+Pipfile.lock
+
+# Cloud Functions
+functions/.env.yaml
+functions/requirements.txt
+
+# Frontend environment
+frontend/.env.local
+frontend/.env.production
