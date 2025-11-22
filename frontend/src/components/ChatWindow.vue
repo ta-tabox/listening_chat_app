@@ -206,10 +206,15 @@ onMounted(() => {
   color: white;
   font-weight: bold;
   padding: 16px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 16px 40px rgba(0, 0, 0, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
+  position: relative;
+  z-index: 10;
 }
 
 .messages-area {
