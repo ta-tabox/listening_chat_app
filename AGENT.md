@@ -102,16 +102,17 @@ curl -X POST http://localhost:8080/chat \
 
 ```bash
 # Cloud Functionsのデプロイ
+# 注: Cloud Functionsはasia-northeast1にデプロイ（Vertex AIのus-central1とは異なる）
 cd functions
 gcloud functions deploy listening_chat_api \
   --runtime python311 \
   --trigger-http \
   --allow-unauthenticated \
-  --region ${VERTEX_AI_LOCATION} \
+  --region asia-northeast1 \
   --env-vars-file .env.yaml \
   --entry-point listening_chat_api \
   --max-instances 10 \
-  --memory 256MB
+  --memory 512MB
 
 # Firebase Hostingのデプロイ
 cd ..
@@ -157,15 +158,21 @@ firebase deploy --only hosting
 
 **フロントエンド** (`frontend/.env.local`):
 ```
-VITE_API_ENDPOINT=https://${VERTEX_AI_LOCATION}-${GCP_PROJECT_ID}.cloudfunctions.net/listening_chat_api
+# ローカル開発用
+VITE_API_ENDPOINT=http://localhost:8080
+
+# 本番環境用 (frontend/.env.production)
+VITE_API_ENDPOINT=https://asia-northeast1-${GCP_PROJECT_ID}.cloudfunctions.net/listening_chat_api
 ```
 
 **バックエンド** (`functions/.env.yaml`):
 ```yaml
 GCP_PROJECT_ID: "YOUR_PROJECT_ID"
-VERTEX_AI_LOCATION: "YOUR_REGION"  # 例: us-central1, asia-northeast1
+VERTEX_AI_LOCATION: "us-central1"  # Vertex AIのロケーション
 SYSTEM_PROMPT_ID: "YOUR_PROMPT_ID"
 ```
+
+**注意**: Cloud Functionsのデプロイリージョン（asia-northeast1）とVertex AIのロケーション（us-central1）は異なります。
 
 ⚠️ これらのファイルはgitignore対象 - 実際の認証情報は絶対にコミットしないこと。
 
