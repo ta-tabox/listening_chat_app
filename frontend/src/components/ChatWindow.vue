@@ -268,4 +268,23 @@ onMounted(() => {
   background: white;
   border-top: 1px solid #e0e0e0;
 }
+
+/* フォーカス時のパープル系カラー */
+.input-area :deep(.v-field--focused) {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.input-area :deep(.v-field--focused .v-field__outline) {
+  color: #7a5690 !important;
+}
+
+/* 鼓動アニメーション */
+@keyframes heartbeat {
+  0% {
+    box-shadow: 0 0 0 0 rgba(122, 86, 144, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 6px rgba(122, 86, 144, 0);
+  }
+}
 </style>
