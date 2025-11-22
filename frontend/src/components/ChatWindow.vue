@@ -152,27 +152,28 @@ const sendMessage = async () => {
     // APIリクエスト
     const response = await apiSendMessage(message, chatHistory.value, conversationSummary.value)
 
-    // AI応答を追加
-    messages.value.push({
-      text: response.response,
-      isUser: false,
-      timestamp: formatTime(),
-    })
-
     // 履歴と要約を更新
     chatHistory.value = response.history
     if (response.summary) {
       conversationSummary.value = response.summary
     }
 
-    scrollToBottom()
+    // 少し間を置いてからAI応答を表示（考えているような雰囲気）
+    setTimeout(() => {
+      messages.value.push({
+        text: response.response,
+        isUser: false,
+        timestamp: formatTime(),
+      })
+      scrollToBottom()
+      isLoading.value = false
+      // 送信後に入力欄にフォーカスを戻す
+      focusInput()
+    }, 1500)
   } catch (error) {
     errorMessage.value = 'メッセージの送信に失敗しました。もう一度お試しください。'
     showError.value = true
-  } finally {
     isLoading.value = false
-    // 送信後に入力欄にフォーカスを戻す
-    focusInput()
   }
 }
 
