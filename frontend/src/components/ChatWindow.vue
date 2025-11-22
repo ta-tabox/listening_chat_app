@@ -53,7 +53,6 @@
           density="comfortable"
           :disabled="isLoading"
           @keydown.enter.exact="handleEnter"
-          @keydown.enter.shift.exact="addNewLine"
           @compositionstart="isComposing = true"
           @compositionend="isComposing = false"
         ></v-textarea>
@@ -109,10 +108,6 @@ export default {
           container.scrollTop = container.scrollHeight
         }
       })
-    }
-
-    const addNewLine = () => {
-      userInput.value += '\n'
     }
 
     const handleEnter = (event) => {
@@ -181,7 +176,6 @@ export default {
       errorMessage,
       showPromptEditor,
       sendMessage,
-      addNewLine,
       handleEnter,
     }
   },
