@@ -1,8 +1,6 @@
 import axios from 'axios'
 
 const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || null
-const GET_PROMPT_ENDPOINT = import.meta.env.VITE_GET_PROMPT_ENDPOINT || null
-const UPDATE_PROMPT_ENDPOINT = import.meta.env.VITE_UPDATE_PROMPT_ENDPOINT || null
 
 export async function sendMessage(message, history = [], summary = null) {
   if (!API_ENDPOINT) {
@@ -20,7 +18,7 @@ export async function sendMessage(message, history = [], summary = null) {
       payload.summary = summary
     }
 
-    const response = await axios.post(API_ENDPOINT, payload)
+    const response = await axios.post(`${API_ENDPOINT}/chat`, payload)
     return response.data
   } catch (error) {
     console.error('API Error:', error)
@@ -29,13 +27,13 @@ export async function sendMessage(message, history = [], summary = null) {
 }
 
 export async function getPrompt() {
-  if (!GET_PROMPT_ENDPOINT) {
-    console.error('Get prompt endpoint is not configured. Please set VITE_GET_PROMPT_ENDPOINT environment variable.')
-    throw new Error('Get prompt endpoint is not configured')
+  if (!API_ENDPOINT) {
+    console.error('API endpoint is not configured. Please set VITE_API_ENDPOINT environment variable.')
+    throw new Error('API endpoint is not configured')
   }
 
   try {
-    const response = await axios.get(GET_PROMPT_ENDPOINT)
+    const response = await axios.get(`${API_ENDPOINT}/get_prompt`)
     return response.data
   } catch (error) {
     console.error('Get Prompt Error:', error)
@@ -44,13 +42,13 @@ export async function getPrompt() {
 }
 
 export async function updatePrompt(promptText) {
-  if (!UPDATE_PROMPT_ENDPOINT) {
-    console.error('Update prompt endpoint is not configured. Please set VITE_UPDATE_PROMPT_ENDPOINT environment variable.')
-    throw new Error('Update prompt endpoint is not configured')
+  if (!API_ENDPOINT) {
+    console.error('API endpoint is not configured. Please set VITE_API_ENDPOINT environment variable.')
+    throw new Error('API endpoint is not configured')
   }
 
   try {
-    const response = await axios.post(UPDATE_PROMPT_ENDPOINT, { prompt: promptText })
+    const response = await axios.post(`${API_ENDPOINT}/update_prompt`, { prompt: promptText })
     return response.data
   } catch (error) {
     console.error('Update Prompt Error:', error)

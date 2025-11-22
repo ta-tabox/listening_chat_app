@@ -34,6 +34,7 @@ DEFAULT_SYSTEM_INSTRUCTION = """あなたは優れた傾聴者です。以下の
 
 相手が抱える悩みや不安に気づき、それを言葉にするきっかけを提供してください。"""
 
+
 def get_system_instruction():
     """Vertex AIからシステムプロンプトを取得"""
     if not PROMPT_ID:
@@ -50,20 +51,40 @@ def get_system_instruction():
         return DEFAULT_SYSTEM_INSTRUCTION
 
 @functions_framework.http
-def get_prompt(request):
+def listening_chat_api(request):
     """
-    プロンプト取得エンドポイント
+    統合APIエンドポイント - パスベースルーティング
     """
     # CORS設定
     if request.method == 'OPTIONS':
         headers = {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET',
+            'Access-Control-Allow-Methods': 'GET, POST',
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Max-Age': '3600'
         }
         return ('', 204, headers)
 
+    # パスを取得
+    path = request.path
+
+    # パスに応じてハンドラーを呼び出す
+    if path == '/chat' or path == '/':
+        return handle_chat(request)
+    elif path == '/get_prompt':
+        return handle_get_prompt(request)
+    elif path == '/update_prompt':
+        return handle_update_prompt(request)
+    else:
+        headers = {
+            'Access-Control-Allow-Origin': '*'
+        }
+        return jsonify({'error': 'Not found'}), 404, headers
+
+def handle_get_prompt(request):
+    """
+    プロンプト取得ハンドラー
+    """
     headers = {
         'Access-Control-Allow-Origin': '*'
     }
@@ -75,21 +96,10 @@ def get_prompt(request):
         print(f"Error: {str(e)}")
         return jsonify({'error': f'エラーが発生しました: {str(e)}'}), 500, headers
 
-@functions_framework.http
-def update_prompt(request):
+def handle_update_prompt(request):
     """
-    プロンプト更新エンドポイント
+    プロンプト更新ハンドラー
     """
-    # CORS設定
-    if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '3600'
-        }
-        return ('', 204, headers)
-
     headers = {
         'Access-Control-Allow-Origin': '*'
     }
@@ -130,21 +140,10 @@ def update_prompt(request):
         print(f"Error: {str(e)}")
         return jsonify({'error': f'エラーが発生しました: {str(e)}'}), 500, headers
 
-@functions_framework.http
-def chat(request):
+def handle_chat(request):
     """
-    チャットエンドポイント
+    チャットハンドラー
     """
-    # CORS設定
-    if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '3600'
-        }
-        return ('', 204, headers)
-
     headers = {
         'Access-Control-Allow-Origin': '*'
     }
