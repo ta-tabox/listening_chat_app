@@ -72,7 +72,7 @@
 
 <script>
 import { ref, nextTick } from 'vue'
-import { sendMessage as apiSendMessage } from '../services/api'
+import { sendMessage as apiSendMessage } from '@/services/api'
 
 export default {
   name: 'ChatWindow',
