@@ -45,6 +45,7 @@
       <!-- 入力エリア -->
       <v-card-actions class="input-area pa-4">
         <v-textarea
+          ref="inputRef"
           v-model="userInput"
           placeholder="メッセージを入力してください（Enterで送信、Shift+Enterで改行）"
           rows="2"
@@ -80,7 +81,7 @@
 </template>
 
 <script>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { sendMessage as apiSendMessage } from '@/services/api'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -95,6 +96,7 @@ export default {
     const isLoading = ref(false)
     const isComposing = ref(false)
     const messagesArea = ref(null)
+    const inputRef = ref(null)
     const chatHistory = ref([])
     const conversationSummary = ref(null)
     const showError = ref(false)
@@ -106,6 +108,16 @@ export default {
         if (messagesArea.value) {
           const container = messagesArea.value.$el || messagesArea.value
           container.scrollTop = container.scrollHeight
+        }
+      })
+    }
+
+    const focusInput = () => {
+      nextTick(() => {
+        if (inputRef.value) {
+          // Vuetifyのv-textareaの場合、内部のinput要素にアクセスする必要がある
+          const textarea = inputRef.value.$el?.querySelector('textarea') || inputRef.value
+          textarea?.focus()
         }
       })
     }
@@ -163,8 +175,15 @@ export default {
         showError.value = true
       } finally {
         isLoading.value = false
+        // 送信後に入力欄にフォーカスを戻す
+        focusInput()
       }
     }
+
+    // ページ読み込み時に入力欄にフォーカス
+    onMounted(() => {
+      focusInput()
+    })
 
     return {
       messages,
@@ -172,6 +191,7 @@ export default {
       isLoading,
       isComposing,
       messagesArea,
+      inputRef,
       showError,
       errorMessage,
       showPromptEditor,
