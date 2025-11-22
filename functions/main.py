@@ -2,6 +2,7 @@ import functions_framework
 from google import genai
 from google.genai import types as genai_types
 import vertexai
+from vertexai import types as vertexai_types
 import os
 from flask import jsonify
 import json
@@ -47,6 +48,87 @@ def get_system_instruction():
     except Exception as e:
         print(f"Warning: プロンプト取得失敗。デフォルトを使用。Error: {str(e)}")
         return DEFAULT_SYSTEM_INSTRUCTION
+
+@functions_framework.http
+def get_prompt(request):
+    """
+    プロンプト取得エンドポイント
+    """
+    # CORS設定
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return ('', 204, headers)
+
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
+    try:
+        system_instruction = get_system_instruction()
+        return jsonify({'prompt': system_instruction}), 200, headers
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': f'エラーが発生しました: {str(e)}'}), 500, headers
+
+@functions_framework.http
+def update_prompt(request):
+    """
+    プロンプト更新エンドポイント
+    """
+    # CORS設定
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return ('', 204, headers)
+
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
+    try:
+        request_json = request.get_json(silent=True)
+        if not request_json or 'prompt' not in request_json:
+            return jsonify({'error': 'プロンプトが必要です'}), 400, headers
+
+        new_prompt_text = request_json['prompt']
+
+        if not PROMPT_ID:
+            return jsonify({'error': 'SYSTEM_PROMPT_IDが設定されていません'}), 400, headers
+
+        # 既存のプロンプトを取得
+        existing_prompt = vertex_client.prompts.get(prompt_id=PROMPT_ID)
+
+        # 新しいプロンプトデータを作成
+        updated_prompt = vertexai_types.Prompt(
+            prompt_data=vertexai_types.PromptData(
+                contents=existing_prompt.prompt_data.contents if existing_prompt.prompt_data else [],
+                system_instruction=genai_types.Content(
+                    parts=[genai_types.Part(text=new_prompt_text)]
+                ),
+                model=existing_prompt.prompt_data.model if existing_prompt.prompt_data else "gemini-2.5-flash-lite",
+            ),
+        )
+
+        # 新しいバージョンを作成
+        vertex_client.prompts.create_version(
+            prompt=updated_prompt,
+            prompt_id=PROMPT_ID
+        )
+
+        return jsonify({'success': True, 'message': 'プロンプトを更新しました'}), 200, headers
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': f'エラーが発生しました: {str(e)}'}), 500, headers
 
 @functions_framework.http
 def chat(request):

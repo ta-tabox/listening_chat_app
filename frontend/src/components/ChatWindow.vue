@@ -2,9 +2,16 @@
   <v-container fluid class="chat-container pa-0">
     <v-card class="chat-card" elevation="0">
       <!-- ヘッダー -->
-      <v-card-title class="chat-header">
+      <v-card-title class="chat-header d-flex align-center">
         <v-icon class="mr-2">mdi-chat</v-icon>
         傾聴チャット
+        <v-spacer></v-spacer>
+        <v-btn
+          icon="mdi-cog"
+          variant="text"
+          @click="showPromptEditor = true"
+          size="small"
+        ></v-btn>
       </v-card-title>
 
       <!-- メッセージ表示エリア -->
@@ -67,15 +74,22 @@
         <v-btn variant="text" @click="showError = false">閉じる</v-btn>
       </template>
     </v-snackbar>
+
+    <!-- プロンプト編集モーダル -->
+    <PromptEditor v-model="showPromptEditor" />
   </v-container>
 </template>
 
 <script>
 import { ref, nextTick } from 'vue'
 import { sendMessage as apiSendMessage } from '@/services/api'
+import PromptEditor from '@/components/PromptEditor.vue'
 
 export default {
   name: 'ChatWindow',
+  components: {
+    PromptEditor,
+  },
   setup() {
     const messages = ref([])
     const userInput = ref('')
@@ -86,6 +100,7 @@ export default {
     const conversationSummary = ref(null)
     const showError = ref(false)
     const errorMessage = ref('')
+    const showPromptEditor = ref(false)
 
     const scrollToBottom = () => {
       nextTick(() => {
@@ -164,6 +179,7 @@ export default {
       messagesArea,
       showError,
       errorMessage,
+      showPromptEditor,
       sendMessage,
       addNewLine,
       handleEnter,
