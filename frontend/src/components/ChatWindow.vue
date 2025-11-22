@@ -19,16 +19,18 @@
         <div v-if="messages.length === 0" class="text-center text-grey pa-4">
           お話を聞かせてください。何でも話していただいて大丈夫です。
         </div>
-        <div
-          v-for="(message, index) in messages"
-          :key="index"
-          :class="['message-bubble', message.isUser ? 'user-message' : 'ai-message']"
-        >
-          <div class="message-content">
-            <div class="message-text">{{ message.text }}</div>
-            <div class="message-time">{{ message.timestamp }}</div>
+        <transition-group name="message" tag="div">
+          <div
+            v-for="(message, index) in messages"
+            :key="index"
+            :class="['message-bubble', message.isUser ? 'user-message' : 'ai-message']"
+          >
+            <div class="message-content">
+              <div class="message-text">{{ message.text }}</div>
+              <div class="message-time">{{ message.timestamp }}</div>
+            </div>
           </div>
-        </div>
+        </transition-group>
         <div v-if="isLoading" class="message-bubble ai-message">
           <div class="message-content typing-indicator">
             <span class="dot"></span>
@@ -98,7 +100,10 @@ const scrollToBottom = () => {
   nextTick(() => {
     if (messagesArea.value) {
       const container = messagesArea.value.$el || messagesArea.value
-      container.scrollTop = container.scrollHeight
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   })
 }
@@ -322,5 +327,22 @@ onMounted(() => {
     opacity: 1;
     transform: translateY(-8px);
   }
+}
+
+/* メッセージ表示アニメーション */
+.message-enter-active {
+  transition: all 0.5s ease-out;
+}
+
+.message-enter-from {
+  opacity: 0;
+}
+
+.user-message.message-enter-from {
+  transform: translateX(30px);
+}
+
+.ai-message.message-enter-from {
+  transform: translateX(-30px);
 }
 </style>
