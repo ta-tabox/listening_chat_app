@@ -196,6 +196,7 @@ onMounted(() => {
   height: 90vh;
   display: flex;
   flex-direction: column;
+  background: transparent !important;
 }
 
 .chat-header {
@@ -205,6 +206,8 @@ onMounted(() => {
   padding: 16px 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 }
 
 .messages-area {
