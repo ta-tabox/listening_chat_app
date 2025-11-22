@@ -1,6 +1,7 @@
 import functions_framework
+from google import genai
+from google.genai import types as genai_types
 import vertexai
-from vertexai.generative_models import GenerativeModel, Content, Part
 import os
 from flask import jsonify
 import json
@@ -8,13 +9,20 @@ import json
 # プロジェクト設定
 PROJECT_ID = os.environ.get('GCP_PROJECT_ID')
 VERTEX_AI_LOCATION = os.environ.get('VERTEX_AI_LOCATION', 'us-central1')
+PROMPT_ID = os.environ.get('SYSTEM_PROMPT_ID', None)
 
-# Vertex AI初期化
-vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
+# Vertex AI Client初期化
+vertex_client = vertexai.Client(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
 
-# システムプロンプト（傾聴に特化）
-SYSTEM_INSTRUCTION = """
-あなたは優れた傾聴者です。以下の原則に従って対話してください：
+# Genai Client初期化（チャット用）
+genai_client = genai.Client(
+    vertexai=True,
+    project=PROJECT_ID,
+    location=VERTEX_AI_LOCATION
+)
+
+# デフォルトのシステムプロンプト
+DEFAULT_SYSTEM_INSTRUCTION = """あなたは優れた傾聴者です。以下の原則に従って対話してください：
 
 1. 相手の気持ちに寄り添い、共感的に応答する
 2. 相手の話を遮らず、じっくりと聞く姿勢を示す
@@ -23,8 +31,22 @@ SYSTEM_INSTRUCTION = """
 5. 温かく、受容的な態度を保つ
 6. 相手のペースを尊重する
 
-相手が抱える悩みや不安に気づき、それを言葉にするきっかけを提供してください。
-"""
+相手が抱える悩みや不安に気づき、それを言葉にするきっかけを提供してください。"""
+
+def get_system_instruction():
+    """Vertex AIからシステムプロンプトを取得"""
+    if not PROMPT_ID:
+        return DEFAULT_SYSTEM_INSTRUCTION
+
+    try:
+        prompt = vertex_client.prompts.get(prompt_id=PROMPT_ID)
+        if prompt.prompt_data and prompt.prompt_data.system_instruction:
+            parts = prompt.prompt_data.system_instruction.parts
+            return parts[0].text if parts else DEFAULT_SYSTEM_INSTRUCTION
+        return DEFAULT_SYSTEM_INSTRUCTION
+    except Exception as e:
+        print(f"Warning: プロンプト取得失敗。デフォルトを使用。Error: {str(e)}")
+        return DEFAULT_SYSTEM_INSTRUCTION
 
 @functions_framework.http
 def chat(request):
@@ -56,32 +78,52 @@ def chat(request):
         chat_history_json = request_json.get('history', [])
         conversation_summary = request_json.get('summary', None)
 
-        # 履歴をContentオブジェクトに変換
+        # 履歴をgenai.types.Content形式に変換
         chat_history = []
         for msg in chat_history_json:
-            parts = [Part.from_text(part['text']) for part in msg['parts']]
-            chat_history.append(Content(role=msg['role'], parts=parts))
+            chat_history.append(genai_types.Content(
+                role=msg['role'],
+                parts=[genai_types.Part(text=part['text']) for part in msg['parts']]
+            ))
 
-        # システムプロンプトに要約を含める
-        system_prompt = SYSTEM_INSTRUCTION
+        # システムプロンプトを取得（Vertex AIまたはデフォルト）
+        system_prompt = get_system_instruction()
+
+        # 要約がある場合は追加
         if conversation_summary:
             system_prompt += f"\n\n【これまでの会話の要約】\n{conversation_summary}"
 
-        # Geminiモデル初期化
-        model = GenerativeModel(
-            "gemini-2.5-flash-lite",
-            system_instruction=system_prompt
+        # チャットセッションの設定
+        config = genai_types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            temperature=1.0
         )
 
-        # チャット履歴を含めてセッション作成
-        chat = model.start_chat(history=chat_history)
+        # メッセージ送信（履歴を含む）
+        contents = chat_history + [genai_types.Content(
+            role='user',
+            parts=[genai_types.Part(text=user_message)]
+        )]
 
-        # メッセージ送信
-        response = chat.send_message(user_message)
+        response = genai_client.models.generate_content(
+            model='gemini-2.5-flash-lite',
+            contents=contents,
+            config=config
+        )
+
+        # 履歴を更新
+        chat_history.append(genai_types.Content(
+            role='user',
+            parts=[genai_types.Part(text=user_message)]
+        ))
+        chat_history.append(genai_types.Content(
+            role='model',
+            parts=[genai_types.Part(text=response.text)]
+        ))
 
         # 履歴をJSON化可能な形式に変換
         history_json = []
-        for content in chat.history:
+        for content in chat_history:
             history_json.append({
                 'role': content.role,
                 'parts': [{'text': part.text} for part in content.parts]
@@ -99,8 +141,6 @@ def chat(request):
             history_json = history_json[ITEMS_TO_SUMMARIZE:]
 
             # 要約の作成または更新
-            summary_model = GenerativeModel("gemini-2.5-flash-lite")
-
             if not conversation_summary:
                 # 初回の要約作成
                 summary_prompt = f"""以下の会話履歴を簡潔に要約してください。ユーザーが話した主な内容と、その背景にある感情や状況を中心にまとめてください。
@@ -121,7 +161,10 @@ def chat(request):
 
 統合された要約（200文字以内）:"""
 
-            summary_response = summary_model.generate_content(summary_prompt)
+            summary_response = genai_client.models.generate_content(
+                model='gemini-2.5-flash-lite',
+                contents=summary_prompt
+            )
             conversation_summary = summary_response.text
 
         # レスポンス返却
