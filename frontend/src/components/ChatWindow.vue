@@ -51,6 +51,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
+          color="#7a5690"
           :disabled="isLoading"
           @keydown.enter.exact="handleEnter"
           @compositionstart="isComposing = true"
@@ -277,13 +278,9 @@ onMounted(() => {
   border-top: 1px solid #e0e0e0;
 }
 
-/* フォーカス時のパープル系カラー */
+/* フォーカス時のパープル系カラーとアニメーション */
 .input-area :deep(.v-field--focused) {
   animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-.input-area :deep(.v-field--focused .v-field__outline) {
-  color: #7a5690 !important;
 }
 
 /* 鼓動アニメーション */
