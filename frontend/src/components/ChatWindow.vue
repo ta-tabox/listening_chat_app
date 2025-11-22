@@ -56,7 +56,7 @@
         ></v-textarea>
         <v-btn
           icon="mdi-send"
-          color="primary"
+          color="#9b6bb0"
           :disabled="!userInput.trim() || isLoading"
           @click="sendMessage"
           class="ml-2"
