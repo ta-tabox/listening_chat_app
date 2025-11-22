@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="chat-container pa-0">
-    <v-card class="chat-card" elevation="0">
+    <v-card class="chat-card" elevation="12">
       <!-- ヘッダー -->
       <v-card-title class="chat-header d-flex align-center">
         <v-icon class="mr-2">mdi-chat</v-icon>
@@ -52,6 +52,7 @@
           auto-grow
           variant="outlined"
           density="comfortable"
+          hide-details
           :disabled="isLoading"
           @keydown.enter.exact="handleEnter"
           @compositionstart="isComposing = true"
@@ -186,7 +187,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5d4178 0%, #7a5690 50%, #a66b65 80%, #d88b6e 100%);
 }
 
 .chat-card {
@@ -198,10 +199,12 @@ onMounted(() => {
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6a4c8a 0%, #7a5690 100%);
   color: white;
   font-weight: bold;
   padding: 16px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .messages-area {
@@ -236,7 +239,7 @@ onMounted(() => {
 }
 
 .user-message .message-content {
-  background: #667eea;
+  background: linear-gradient(135deg, #7a5690 0%, #9b6bb0 100%);
   color: white;
 }
 
