@@ -30,14 +30,10 @@
           </div>
         </div>
         <div v-if="isLoading" class="message-bubble ai-message">
-          <div class="message-content">
-            <v-progress-circular
-              indeterminate
-              size="24"
-              width="3"
-              color="primary"
-            ></v-progress-circular>
-            <span class="ml-2">入力中...</span>
+          <div class="message-content typing-indicator">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
           </div>
         </div>
       </v-card-text>
@@ -285,6 +281,45 @@ onMounted(() => {
   }
   100% {
     box-shadow: 0 0 0 6px rgba(122, 86, 144, 0);
+  }
+}
+
+/* 三点リーダのタイピングアニメーション */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 20px;
+}
+
+.typing-indicator .dot {
+  width: 6px;
+  height: 6px;
+  background-color: #9b6bb0;
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-8px);
   }
 }
 </style>
