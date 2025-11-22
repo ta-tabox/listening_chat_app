@@ -80,126 +80,104 @@
   </v-container>
 </template>
 
-<script>
+<script setup>
 import { ref, nextTick, onMounted } from 'vue'
 import { sendMessage as apiSendMessage } from '@/services/api'
 import PromptEditor from '@/components/PromptEditor.vue'
 
-export default {
-  name: 'ChatWindow',
-  components: {
-    PromptEditor,
-  },
-  setup() {
-    const messages = ref([])
-    const userInput = ref('')
-    const isLoading = ref(false)
-    const isComposing = ref(false)
-    const messagesArea = ref(null)
-    const inputRef = ref(null)
-    const chatHistory = ref([])
-    const conversationSummary = ref(null)
-    const showError = ref(false)
-    const errorMessage = ref('')
-    const showPromptEditor = ref(false)
+const messages = ref([])
+const userInput = ref('')
+const isLoading = ref(false)
+const isComposing = ref(false)
+const messagesArea = ref(null)
+const inputRef = ref(null)
+const chatHistory = ref([])
+const conversationSummary = ref(null)
+const showError = ref(false)
+const errorMessage = ref('')
+const showPromptEditor = ref(false)
 
-    const scrollToBottom = () => {
-      nextTick(() => {
-        if (messagesArea.value) {
-          const container = messagesArea.value.$el || messagesArea.value
-          container.scrollTop = container.scrollHeight
-        }
-      })
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messagesArea.value) {
+      const container = messagesArea.value.$el || messagesArea.value
+      container.scrollTop = container.scrollHeight
     }
+  })
+}
 
-    const focusInput = () => {
-      nextTick(() => {
-        if (inputRef.value) {
-          // Vuetifyのv-textareaの場合、内部のinput要素にアクセスする必要がある
-          const textarea = inputRef.value.$el?.querySelector('textarea') || inputRef.value
-          textarea?.focus()
-        }
-      })
+const focusInput = () => {
+  nextTick(() => {
+    if (inputRef.value) {
+      // Vuetifyのv-textareaの場合、内部のinput要素にアクセスする必要がある
+      const textarea = inputRef.value.$el?.querySelector('textarea') || inputRef.value
+      textarea?.focus()
     }
+  })
+}
 
-    const handleEnter = (event) => {
-      // 日本語入力中の変換確定のEnterは無視
-      if (isComposing.value) {
-        return
-      }
-      // 通常のEnterキーの場合は送信
-      event.preventDefault()
-      sendMessage()
-    }
+const handleEnter = (event) => {
+  // 日本語入力中の変換確定のEnterは無視
+  if (isComposing.value) {
+    return
+  }
+  // 通常のEnterキーの場合は送信
+  event.preventDefault()
+  sendMessage()
+}
 
-    const formatTime = () => {
-      const now = new Date()
-      return `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`
-    }
+const formatTime = () => {
+  const now = new Date()
+  return `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`
+}
 
-    const sendMessage = async () => {
-      const message = userInput.value.trim()
-      if (!message || isLoading.value) return
+const sendMessage = async () => {
+  const message = userInput.value.trim()
+  if (!message || isLoading.value) return
 
-      // ユーザーメッセージを追加
-      messages.value.push({
-        text: message,
-        isUser: true,
-        timestamp: formatTime(),
-      })
-      userInput.value = ''
-      scrollToBottom()
+  // ユーザーメッセージを追加
+  messages.value.push({
+    text: message,
+    isUser: true,
+    timestamp: formatTime(),
+  })
+  userInput.value = ''
+  scrollToBottom()
 
-      isLoading.value = true
+  isLoading.value = true
 
-      try {
-        // APIリクエスト
-        const response = await apiSendMessage(message, chatHistory.value, conversationSummary.value)
+  try {
+    // APIリクエスト
+    const response = await apiSendMessage(message, chatHistory.value, conversationSummary.value)
 
-        // AI応答を追加
-        messages.value.push({
-          text: response.response,
-          isUser: false,
-          timestamp: formatTime(),
-        })
-
-        // 履歴と要約を更新
-        chatHistory.value = response.history
-        if (response.summary) {
-          conversationSummary.value = response.summary
-        }
-
-        scrollToBottom()
-      } catch (error) {
-        errorMessage.value = 'メッセージの送信に失敗しました。もう一度お試しください。'
-        showError.value = true
-      } finally {
-        isLoading.value = false
-        // 送信後に入力欄にフォーカスを戻す
-        focusInput()
-      }
-    }
-
-    // ページ読み込み時に入力欄にフォーカス
-    onMounted(() => {
-      focusInput()
+    // AI応答を追加
+    messages.value.push({
+      text: response.response,
+      isUser: false,
+      timestamp: formatTime(),
     })
 
-    return {
-      messages,
-      userInput,
-      isLoading,
-      isComposing,
-      messagesArea,
-      inputRef,
-      showError,
-      errorMessage,
-      showPromptEditor,
-      sendMessage,
-      handleEnter,
+    // 履歴と要約を更新
+    chatHistory.value = response.history
+    if (response.summary) {
+      conversationSummary.value = response.summary
     }
-  },
+
+    scrollToBottom()
+  } catch (error) {
+    errorMessage.value = 'メッセージの送信に失敗しました。もう一度お試しください。'
+    showError.value = true
+  } finally {
+    isLoading.value = false
+    // 送信後に入力欄にフォーカスを戻す
+    focusInput()
+  }
 }
+
+// ページ読み込み時に入力欄にフォーカス
+onMounted(() => {
+  focusInput()
+})
 </script>
 
 <style scoped>
