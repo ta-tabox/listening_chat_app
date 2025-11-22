@@ -7,10 +7,10 @@ import json
 
 # プロジェクト設定
 PROJECT_ID = os.environ.get('GCP_PROJECT_ID')
-LOCATION = os.environ.get('GCP_LOCATION', 'us-central1')
+VERTEX_AI_LOCATION = os.environ.get('VERTEX_AI_LOCATION', 'us-central1')
 
 # Vertex AI初期化
-vertexai.init(project=PROJECT_ID, location=LOCATION)
+vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
 
 # システムプロンプト（傾聴に特化）
 SYSTEM_INSTRUCTION = """
