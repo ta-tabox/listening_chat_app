@@ -163,7 +163,6 @@ Pipfile.lock
 
 # Cloud Functions
 functions/.env.yaml
-functions/requirements.txt
 
 # Frontend environment
 frontend/.env.local
