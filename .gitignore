@@ -168,3 +168,6 @@ functions/requirements.txt
 # Frontend environment
 frontend/.env.local
 frontend/.env.production
+
+# Progress memo
+PROGRESS.md

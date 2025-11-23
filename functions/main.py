@@ -34,7 +34,6 @@ DEFAULT_SYSTEM_INSTRUCTION = """あなたは優れた傾聴者です。以下の
 
 相手が抱える悩みや不安に気づき、それを言葉にするきっかけを提供してください。"""
 
-
 def get_system_instruction():
     """Vertex AIからシステムプロンプトを取得"""
     if not PROMPT_ID:
