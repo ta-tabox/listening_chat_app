@@ -39,13 +39,13 @@ jobs:
       # Cloud Functionsのデプロイ
       - name: Deploy Cloud Functions
         run: |
-          cd functions
           gcloud functions deploy ${{ env.FUNCTION_NAME }} \
             --runtime python311 \
             --trigger-http \
             --allow-unauthenticated \
             --region ${{ env.GCP_REGION }} \
-            --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},VERTEX_AI_LOCATION=${{ secrets.VERTEX_AI_LOCATION }},SYSTEM_PROMPT_ID=${{ secrets.SYSTEM_PROMPT_ID }} \
+            --source ./functions \
+            --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},VERTEX_AI_LOCATION=${{ vars.VERTEX_AI_LOCATION }},SYSTEM_PROMPT_ID=${{ secrets.SYSTEM_PROMPT_ID }} \
             --entry-point listening_chat_api \
             --max-instances 10 \
             --memory 512MB
