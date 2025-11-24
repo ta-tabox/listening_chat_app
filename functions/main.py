@@ -11,6 +11,25 @@ import json
 PROJECT_ID = os.environ.get('GCP_PROJECT_ID')
 VERTEX_AI_LOCATION = os.environ.get('VERTEX_AI_LOCATION', 'us-central1')
 PROMPT_ID = os.environ.get('SYSTEM_PROMPT_ID', None)
+MODEL_NAME = os.environ.get('VERTEX_AI_MODEL', 'gemini-2.5-flash')
+
+# CORS設定
+# K_SERVICEが存在する場合はCloud Functions上での実行（本番環境）
+IS_PRODUCTION = os.environ.get('K_SERVICE') is not None
+ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', '').split(',') if os.environ.get('ALLOWED_ORIGINS') else []
+
+def get_cors_origin():
+    """環境に応じたCORSオリジンを返す"""
+    if not IS_PRODUCTION:
+        # ローカル開発環境では全てのオリジンを許可
+        return '*'
+    elif ALLOWED_ORIGINS:
+        # 本番環境では指定されたオリジンを使用（複数ある場合は最初のものを返す）
+        return ALLOWED_ORIGINS[0] if len(ALLOWED_ORIGINS) == 1 else '*'
+    else:
+        # 本番環境でALLOWED_ORIGINSが未設定の場合は警告
+        print("WARNING: ALLOWED_ORIGINS is not set in production environment")
+        return '*'
 
 # Vertex AI Client初期化
 vertex_client = vertexai.Client(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
@@ -55,9 +74,11 @@ def listening_chat_api(request):
     統合APIエンドポイント - パスベースルーティング
     """
     # CORS設定
+    cors_origin = get_cors_origin()
+
     if request.method == 'OPTIONS':
         headers = {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': cors_origin,
             'Access-Control-Allow-Methods': 'GET, POST',
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Max-Age': '3600'
@@ -69,23 +90,23 @@ def listening_chat_api(request):
 
     # パスに応じてハンドラーを呼び出す
     if path == '/chat' or path == '/':
-        return handle_chat(request)
+        return handle_chat(request, cors_origin)
     elif path == '/get_prompt':
-        return handle_get_prompt(request)
+        return handle_get_prompt(request, cors_origin)
     elif path == '/update_prompt':
-        return handle_update_prompt(request)
+        return handle_update_prompt(request, cors_origin)
     else:
         headers = {
-            'Access-Control-Allow-Origin': '*'
+            'Access-Control-Allow-Origin': cors_origin
         }
         return jsonify({'error': 'Not found'}), 404, headers
 
-def handle_get_prompt(request):
+def handle_get_prompt(request, cors_origin):
     """
     プロンプト取得ハンドラー
     """
     headers = {
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': cors_origin
     }
 
     try:
@@ -95,12 +116,12 @@ def handle_get_prompt(request):
         print(f"Error: {str(e)}")
         return jsonify({'error': f'エラーが発生しました: {str(e)}'}), 500, headers
 
-def handle_update_prompt(request):
+def handle_update_prompt(request, cors_origin):
     """
     プロンプト更新ハンドラー
     """
     headers = {
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': cors_origin
     }
 
     try:
@@ -123,7 +144,7 @@ def handle_update_prompt(request):
                 system_instruction=genai_types.Content(
                     parts=[genai_types.Part(text=new_prompt_text)]
                 ),
-                model=existing_prompt.prompt_data.model if existing_prompt.prompt_data else "gemini-2.5-flash-lite",
+                model=existing_prompt.prompt_data.model if existing_prompt.prompt_data else MODEL_NAME,
             ),
         )
 
@@ -139,12 +160,12 @@ def handle_update_prompt(request):
         print(f"Error: {str(e)}")
         return jsonify({'error': f'エラーが発生しました: {str(e)}'}), 500, headers
 
-def handle_chat(request):
+def handle_chat(request, cors_origin):
     """
     チャットハンドラー
     """
     headers = {
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': cors_origin
     }
 
     try:
@@ -186,7 +207,7 @@ def handle_chat(request):
         )]
 
         response = genai_client.models.generate_content(
-            model='gemini-2.5-flash-lite',
+            model=MODEL_NAME,
             contents=contents,
             config=config
         )
@@ -242,7 +263,7 @@ def handle_chat(request):
 統合された要約（200文字以内）:"""
 
             summary_response = genai_client.models.generate_content(
-                model='gemini-2.5-flash-lite',
+                model=MODEL_NAME,
                 contents=summary_prompt
             )
             conversation_summary = summary_response.text

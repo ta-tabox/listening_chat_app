@@ -45,7 +45,7 @@ jobs:
             --allow-unauthenticated \
             --region ${{ env.GCP_REGION }} \
             --source ./functions \
-            --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},VERTEX_AI_LOCATION=${{ vars.VERTEX_AI_LOCATION }},SYSTEM_PROMPT_ID=${{ secrets.SYSTEM_PROMPT_ID }} \
+            --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},VERTEX_AI_LOCATION=${{ vars.VERTEX_AI_LOCATION }},VERTEX_AI_MODEL=${{ vars.VERTEX_AI_MODEL }},SYSTEM_PROMPT_ID=${{ secrets.SYSTEM_PROMPT_ID }},ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }} \
             --entry-point listening_chat_api \
             --max-instances 10 \
             --memory 512MB
