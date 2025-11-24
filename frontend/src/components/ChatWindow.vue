@@ -42,7 +42,7 @@
         <v-textarea
           ref="inputRef"
           v-model="userInput"
-          placeholder="メッセージを入力してください（Enterで送信、Shift+Enterで改行）"
+          :placeholder="placeholder"
           rows="2"
           auto-grow
           variant="outlined"
@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { sendMessage as apiSendMessage } from '@/services/api'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -93,6 +93,19 @@ const conversationSummary = ref(null)
 const showError = ref(false)
 const errorMessage = ref('')
 const showPromptEditor = ref(false)
+const windowWidth = ref(window.innerWidth)
+
+// 画面サイズに応じてプレースホルダーを切り替え
+const placeholder = computed(() => {
+  return windowWidth.value <= 768
+    ? 'メッセージを入力'
+    : 'メッセージを入力してください（Enterで送信、Shift+Enterで改行）'
+})
+
+// ウィンドウサイズ変更を監視
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -177,6 +190,9 @@ const sendMessage = async () => {
 
 // ページ読み込み時に入力欄にフォーカス
 onMounted(() => {
+  // ウィンドウサイズ変更を監視
+  window.addEventListener('resize', handleResize)
+
   // ローディングを表示
   isLoading.value = true
 
@@ -190,6 +206,11 @@ onMounted(() => {
     isLoading.value = false
     focusInput()
   }, 1500)
+})
+
+// クリーンアップ
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
