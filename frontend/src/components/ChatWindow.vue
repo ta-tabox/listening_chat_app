@@ -51,7 +51,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          color="#7a5690"
+          color="secondary"
           :disabled="isLoading"
           @keydown.enter.exact="handleEnter"
           @compositionstart="isComposing = true"
@@ -59,7 +59,7 @@
         ></v-textarea>
         <v-btn
           icon="mdi-send"
-          color="#9b6bb0"
+          color="primary"
           :disabled="!userInput.trim() || isLoading"
           @click="sendMessage"
           class="ml-2"
@@ -203,7 +203,7 @@ onMounted(() => {
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #6a4c8a 0%, #7a5690 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-accent)) 0%, rgb(var(--v-theme-secondary)) 100%);
   color: white;
   font-weight: bold;
   padding: 16px 24px;
@@ -250,7 +250,7 @@ onMounted(() => {
 }
 
 .user-message .message-content {
-  background: linear-gradient(135deg, #7a5690 0%, #9b6bb0 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-secondary)) 0%, rgb(var(--v-theme-primary)) 100%);
   color: white;
 }
 
@@ -286,10 +286,10 @@ onMounted(() => {
 /* 鼓動アニメーション */
 @keyframes heartbeat {
   0% {
-    box-shadow: 0 0 0 0 rgba(122, 86, 144, 0.5);
+    box-shadow: 0 0 0 0 rgba(var(--v-theme-secondary), 0.5);
   }
   100% {
-    box-shadow: 0 0 0 6px rgba(122, 86, 144, 0);
+    box-shadow: 0 0 0 6px rgba(var(--v-theme-secondary), 0);
   }
 }
 
@@ -304,7 +304,7 @@ onMounted(() => {
 .typing-indicator .dot {
   width: 6px;
   height: 6px;
-  background-color: #9b6bb0;
+  background-color: rgb(var(--v-theme-primary));
   border-radius: 50%;
   animation: typing 1.4s infinite;
 }
