@@ -16,9 +16,6 @@
 
       <!-- メッセージ表示エリア -->
       <v-card-text class="messages-area" ref="messagesArea">
-        <div v-if="messages.length === 0" class="text-center text-grey pa-4">
-          お話を聞かせてください。何でも話していただいて大丈夫です。
-        </div>
         <transition-group name="message" tag="div">
           <div
             v-for="(message, index) in messages"
@@ -180,7 +177,19 @@ const sendMessage = async () => {
 
 // ページ読み込み時に入力欄にフォーカス
 onMounted(() => {
-  focusInput()
+  // ローディングを表示
+  isLoading.value = true
+
+  // 少し間を置いてから初期メッセージを表示（考えている雰囲気を演出）
+  setTimeout(() => {
+    messages.value.push({
+      text: 'お話を聞かせてください。\n\n何でも話していただいて大丈夫です。',
+      isUser: false,
+      timestamp: formatTime(),
+    })
+    isLoading.value = false
+    focusInput()
+  }, 1500)
 })
 </script>
 
@@ -194,12 +203,13 @@ onMounted(() => {
 }
 
 .chat-card {
-  width: 100%;
+  width: calc(100% - 48px);
   max-width: 800px;
   height: 90vh;
   display: flex;
   flex-direction: column;
   background: transparent !important;
+  margin: 0 24px;
 }
 
 .chat-header {
@@ -226,12 +236,9 @@ onMounted(() => {
 }
 
 .message-bubble {
+  margin-top: 16px;
   margin-bottom: 16px;
   display: flex;
-}
-
-.message-bubble:first-child {
-  margin-top: 16px;
 }
 
 .user-message {
@@ -347,5 +354,22 @@ onMounted(() => {
 
 .ai-message.message-enter-from {
   transform: translateX(-30px);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .chat-card {
+    max-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0 !important;
+    margin: 0;
+  }
+
+  .chat-header {
+    background: linear-gradient(135deg, #5d4178 0%, #7a5690 50%, #a66b65 80%, #d88b6e 100%);
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
 }
 </style>
