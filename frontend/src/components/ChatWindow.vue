@@ -16,9 +16,6 @@
 
       <!-- メッセージ表示エリア -->
       <v-card-text class="messages-area" ref="messagesArea">
-        <div v-if="messages.length === 0" class="text-center text-grey pa-4">
-          お話を聞かせてください。何でも話していただいて大丈夫です。
-        </div>
         <transition-group name="message" tag="div">
           <div
             v-for="(message, index) in messages"
@@ -45,13 +42,13 @@
         <v-textarea
           ref="inputRef"
           v-model="userInput"
-          placeholder="メッセージを入力してください（Enterで送信、Shift+Enterで改行）"
+          :placeholder="placeholder"
           rows="2"
           auto-grow
           variant="outlined"
           density="comfortable"
           hide-details
-          color="#7a5690"
+          color="secondary"
           :disabled="isLoading"
           @keydown.enter.exact="handleEnter"
           @compositionstart="isComposing = true"
@@ -59,7 +56,7 @@
         ></v-textarea>
         <v-btn
           icon="mdi-send"
-          color="#9b6bb0"
+          color="primary"
           :disabled="!userInput.trim() || isLoading"
           @click="sendMessage"
           class="ml-2"
@@ -81,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { sendMessage as apiSendMessage } from '@/services/api'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -96,6 +93,19 @@ const conversationSummary = ref(null)
 const showError = ref(false)
 const errorMessage = ref('')
 const showPromptEditor = ref(false)
+const windowWidth = ref(window.innerWidth)
+
+// 画面サイズに応じてプレースホルダーを切り替え
+const placeholder = computed(() => {
+  return windowWidth.value <= 768
+    ? 'メッセージを入力'
+    : 'メッセージを入力してください（Enterで送信、Shift+Enterで改行）'
+})
+
+// ウィンドウサイズ変更を監視
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -180,7 +190,27 @@ const sendMessage = async () => {
 
 // ページ読み込み時に入力欄にフォーカス
 onMounted(() => {
-  focusInput()
+  // ウィンドウサイズ変更を監視
+  window.addEventListener('resize', handleResize)
+
+  // ローディングを表示
+  isLoading.value = true
+
+  // 少し間を置いてから初期メッセージを表示（考えている雰囲気を演出）
+  setTimeout(() => {
+    messages.value.push({
+      text: 'お話を聞かせてください。\n\n何でも話していただいて大丈夫です。',
+      isUser: false,
+      timestamp: formatTime(),
+    })
+    isLoading.value = false
+    focusInput()
+  }, 1500)
+})
+
+// クリーンアップ
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -194,16 +224,17 @@ onMounted(() => {
 }
 
 .chat-card {
-  width: 100%;
+  width: calc(100% - 48px);
   max-width: 800px;
   height: 90vh;
   display: flex;
   flex-direction: column;
   background: transparent !important;
+  margin: 0 24px;
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #6a4c8a 0%, #7a5690 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-accent)) 0%, rgb(var(--v-theme-secondary)) 100%);
   color: white;
   font-weight: bold;
   padding: 16px 24px;
@@ -226,12 +257,9 @@ onMounted(() => {
 }
 
 .message-bubble {
+  margin-top: 16px;
   margin-bottom: 16px;
   display: flex;
-}
-
-.message-bubble:first-child {
-  margin-top: 16px;
 }
 
 .user-message {
@@ -250,7 +278,7 @@ onMounted(() => {
 }
 
 .user-message .message-content {
-  background: linear-gradient(135deg, #7a5690 0%, #9b6bb0 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-secondary)) 0%, rgb(var(--v-theme-primary)) 100%);
   color: white;
 }
 
@@ -286,10 +314,10 @@ onMounted(() => {
 /* 鼓動アニメーション */
 @keyframes heartbeat {
   0% {
-    box-shadow: 0 0 0 0 rgba(122, 86, 144, 0.5);
+    box-shadow: 0 0 0 0 rgba(var(--v-theme-secondary), 0.5);
   }
   100% {
-    box-shadow: 0 0 0 6px rgba(122, 86, 144, 0);
+    box-shadow: 0 0 0 6px rgba(var(--v-theme-secondary), 0);
   }
 }
 
@@ -304,7 +332,7 @@ onMounted(() => {
 .typing-indicator .dot {
   width: 6px;
   height: 6px;
-  background-color: #9b6bb0;
+  background-color: rgb(var(--v-theme-primary));
   border-radius: 50%;
   animation: typing 1.4s infinite;
 }
@@ -347,5 +375,22 @@ onMounted(() => {
 
 .ai-message.message-enter-from {
   transform: translateX(-30px);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .chat-card {
+    max-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0 !important;
+    margin: 0;
+  }
+
+  .chat-header {
+    background: linear-gradient(135deg, #5d4178 0%, #7a5690 50%, #a66b65 80%, #d88b6e 100%);
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
 }
 </style>
