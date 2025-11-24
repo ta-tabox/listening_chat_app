@@ -1,78 +1,15 @@
 # 傾聴型AIチャットアプリケーション
 
-「傾聴」に特化したAIチャットボットアプリケーション。ユーザーの話に共感的に耳を傾け、非批判的で受容的な応答を提供します。
+「傾聴」に特化したAIチャットボットアプリケーション。  
+ユーザーの話に共感的に耳を傾け、相手を否定せずで受容的な応答を提供します。
 
 ## 概要
 
-このアプリケーションは、Vertex AI（Gemini 1.5 Flash）を活用した傾聴型のチャットボットです。ユーザーが気軽に悩みや考えを話せる安全な対話環境を提供します。
+このアプリケーションは、Vertex AIを活用した傾聴型のチャットボットです。 ユーザーが気軽に悩みや考えを話せる安全な対話環境を提供します。
 
-## インフラ構成
+## サイト
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                          ユーザー                                 │
-└────────────────────────┬────────────────────────────────────────┘
-                         │ HTTPS
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Firebase Hosting (asia-northeast1)                  │
-│                  Vue.js + Vuetify SPA                            │
-└────────────────────────┬────────────────────────────────────────┘
-                         │ HTTPS (REST API)
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│         Cloud Functions (2nd Gen) - asia-northeast1              │
-│                   Python 3.11 + Flask                            │
-│              - チャット履歴管理                                    │
-│              - 会話要約機能                                        │
-└────────────────────────┬────────────────────────────────────────┘
-                         │ Vertex AI API
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Vertex AI (us-central1)                             │
-│                Gemini 1.5 Flash (gemini-2.5-flash-lite)          │
-│              - 傾聴に特化したシステムプロンプト                      │
-│              - コンテキスト管理                                     │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### リージョン構成
-
-- **Cloud Functions**: `asia-northeast1` (東京) - エンドユーザーに近い位置でレイテンシを最小化
-- **Vertex AI**: `us-central1` - モデルの安定性と可用性を重視
-
-## 技術スタック
-
-### フロントエンド
-- Vue.js 3 (Composition API)
-- Vuetify 3 (Material Design)
-- Vite
-- Axios
-
-### バックエンド
-- Cloud Functions (2nd Gen)
-- Python 3.11
-- Flask
-- Vertex AI SDK
-
-### インフラ
-- Firebase Hosting
-- Google Cloud Platform
-- Vertex AI
-
-## プロジェクト構成
-
-```
-.
-├── frontend/              # フロントエンドアプリケーション (Vue.js + Vuetify)
-├── functions/             # バックエンドAPI (Cloud Functions)
-├── firebase.json          # Firebase Hosting設定
-└── .firebaserc           # Firebaseプロジェクト設定
-```
-
-詳細は各ディレクトリのREADMEを参照してください：
-- [frontend/README.md](frontend/README.md)
-- [functions/README.md](functions/README.md)
+[https://active-listening-chat.web.app/]
 
 ## 主な機能
 
@@ -80,7 +17,7 @@
 
 システムプロンプトにより、以下の特徴を持つ応答を生成：
 
-- 共感的で非批判的な応答
+- 共感的で相手を否定しない応答
 - 相手の話を遮らない積極的傾聴
 - 一方的なアドバイスの回避
 - ユーザーの感情表現をサポート
@@ -94,10 +31,99 @@
 
 ### UI/UX
 
-- Material Designに基づいた洗練されたUI
+- 使い方が明瞭なシンプルなデザイン
 - レスポンシブデザイン（モバイル対応）
-- 日本語IME対応
-- リアルタイムローディング表示
+- 対人とやり取りをしているようなメッセージ表示  
+  (AI固有の過度なレスポンススピードやローディング的な機会的な印象を避ける)
+
+#### PC
+
+<img width="500" alt="Image" src="https://github.com/user-attachments/assets/028d8179-86a4-4b63-9d05-ccd1fb17b47e" />
+
+#### モバイル
+
+<img width="300" alt="Image" src="https://github.com/user-attachments/assets/30e8637b-a693-4732-b6f3-bff123c91786" />
+
+## インフラ構成
+
+### 全体図
+
+```
+┌────────────────────────────────────────────┐
+│                    User                    │
+└─────────────────────┬──────────────────────┘
+                      │ HTTPS
+Frontend              ▼
+┌────────────────────────────────────────────┐
+│              Firebase Hosting              │ - チャット機能
+│            Vue.js + Vuetify SPA            │ - システムプロンプトの表示・編集
+└─────────────────────┬──────────────────────┘
+                      │ HTTPS (REST API)
+Backend               ▼
+┌────────────────────────────────────────────┐
+│              Cloud Functions               │ - Vertex AIへの橋渡し
+│           Python 3.11 + Flask              │
+└─────────────────────┬──────────────────────┘
+                      │ Vertex AI API
+LLM                   ▼
+┌────────────────────────────────────────────┐
+│                 Vertex AI                  │ - 返答の生成
+│               Gemini 2.5 Flash             │ - システムプロンプトの保持
+└────────────────────────────────────────────┘
+
+CI/CD
+┌────────────────────────────────────────────┐
+│              GitHub Actions                │ - Frontend, Backendに対して自動デプロイ
+└────────────────────────────────────────────┘
+```
+
+### リージョン構成
+
+- **Cloud Functions**: `asia-northeast1` (東京) - エンドユーザーに近い位置でレイテンシを最小化
+- **Vertex AI**: `us-central1` - モデルの安定性と可用性を重視
+
+## 技術スタック
+
+### フロントエンド
+
+- Vue.js 3
+- Vuetify 3
+- Vite
+- Axios
+
+### バックエンド
+
+- Cloud Functions
+- Python 3.11
+- Flask
+- Vertex AI SDK
+
+### インフラ
+
+- Firebase Hosting
+- Google Cloud Platform
+- Vertex AI
+- GitHub Actions
+
+### 開発環境
+
+- Claude Code
+- NeoVim
+
+## プロジェクト構成
+
+```
+.
+├── frontend/              # フロントエンドアプリケーション (Vue.js + Vuetify)
+├── functions/             # バックエンドAPI (Cloud Functions)
+├── firebase.json          # Firebase Hosting設定
+└── .firebaserc           # Firebaseプロジェクト設定
+```
+
+詳細は各ディレクトリのREADMEを参照してください：
+
+- [frontend/README.md](frontend/README.md)
+- [functions/README.md](functions/README.md)
 
 ## ライセンス
 
