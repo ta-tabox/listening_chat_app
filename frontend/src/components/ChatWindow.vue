@@ -134,7 +134,11 @@ const handleEnter = (event) => {
   if (isComposing.value) {
     return
   }
-  // 通常のEnterキーの場合は送信
+  // スマホサイズ（768px以下）では改行を許可し、送信しない
+  if (windowWidth.value <= 768) {
+    return
+  }
+  // デスクトップでは通常のEnterキーで送信
   event.preventDefault()
   sendMessage()
 }
@@ -379,10 +383,16 @@ onUnmounted(() => {
 
 /* モバイル対応 */
 @media (max-width: 768px) {
+  .chat-container {
+    height: 100vh; /* フォールバック */
+    height: 100dvh; /* ブラウザUIを考慮した動的な高さ */
+  }
+
   .chat-card {
     max-width: 100vw;
     width: 100vw;
-    height: 100vh;
+    height: 100vh; /* フォールバック */
+    height: 100dvh; /* ブラウザUIを考慮した動的な高さ */
     border-radius: 0 !important;
     margin: 0;
   }
